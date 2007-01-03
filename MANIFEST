@@ -11,4 +11,5 @@ lib/SyslogScan/Daemon/SpamDetector/SpamAssassin.pm
 lib/SyslogScan/Daemon/SpamDetector/SpamSink.pm
 Makefile.PL
 MANIFEST
+CHANGELOG
 META.yml                                 Module meta-data (added by MakeMaker)

@@ -132,7 +132,6 @@ END
 					print "# CLEARED $c3 OLD BLOCK HISTORIES\n";
 				};
 				print STDERR $@ if $@;
-				POSIX::_exit(0);
 
 				eval {
 					my $dbh = $self->track_dbh;

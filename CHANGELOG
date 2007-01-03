@@ -1,0 +1,5 @@
+0.41	2007/01/03
+
+Bugfix: delete old spam recevied rows in BlockList.pm
+
+
