@@ -1,3 +1,10 @@
+
+0.42	2007/01/07
+
+Changed example program for generating log entries for
+SpamSink.pm: will no longer generate an entry for postmaster 
+bounces.
+
 0.41	2007/01/03
 
 Bugfix: delete old spam recevied rows in BlockList.pm

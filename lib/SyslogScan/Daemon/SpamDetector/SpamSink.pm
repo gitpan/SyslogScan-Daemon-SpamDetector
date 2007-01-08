@@ -88,9 +88,19 @@ It looks for the following kind of message line:
 Lines like this can be generate by forwarding mail to a program like:
 
  #!/bin/sh 
- /usr/bin/sed -n '/^Message-I[dD]:/{p
- q
- }' | /usr/bin/logger -p mail.info -t spamsink
+ perl -e '
+        $x = <>; 
+        while (<>) { 
+                last if /^$/; 
+                next unless /^(Message-I[dD]: .*)/; 
+                $y = $1; 
+        } 
+        print "$y\n" 
+                if      $x =~ /\@/ 
+                        && $y =~ /\@/ 
+                        && $x !~ /mailer-daemon/i 
+                        && $x !~ /postmaster/ ; 
+ ' | /usr/bin/logger -p mail.info -t spamsink
 
 =head1 CONFIGURATION PARAMETERS
 
