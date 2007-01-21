@@ -134,6 +134,7 @@ END
 				print STDERR $@ if $@;
 
 				eval {
+					print "# Attempting to clear old spam reports\n";
 					my $dbh = $self->track_dbh;
 					$dbh->begin_work;
 					my $oldspam = $time - 86400 * $self->{spammemory};

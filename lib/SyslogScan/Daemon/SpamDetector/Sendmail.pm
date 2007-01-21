@@ -40,7 +40,7 @@ sub get_logs
 	return (
 		$self->{logfile}	=> [
 #			Oct 20 00:00:12 idiom sm-mta[16655]: k9K6xf1f016655: from=<declarator@embrace.org.uk>, size=771, class=0, nrcpts=1, msgid=<46600514770495.39A8A178A2@SLDS5JHS>, proto=ESMTP, daemon=Daemon0, relay=pool-151-205-120-16.ny325.east.verizon.net [151.205.120.16]
-			qr{^$Date (\S+) sm-mta\[\d+\]: \w+: from=<(.*?)>, size=\d+, class=\d+, nrcpts=\d+, msgid=<(.*?)>, proto=\S+, daemon=\S+, relay=(\S+) \[([\d\.]{8,40})\]},
+			qr{^$Date (\S+) sm-mta\[\d+\]: \w+: from=<(.*?)>, size=\d+, class=\d+, nrcpts=\d+, msgid=<(.*?)>, proto=\S+, daemon=\S+, relay=(?:(\S+) )?\[([\d\.]{8,40})\]},
 
 		],
 	);
@@ -77,8 +77,9 @@ sub parse_logs
  plugin SyslogScan::Daemon::SpamDetector as sd_
 
  sd_plugin SyslogScan::Daemon::SpamDetector::Sendmail
-	debug 0
-	logfile /var/log/mail.info
+	debug		0
+	logfile		/var/log/mail.info
+	rx_extra	'ingore_lines_without_this_string'
 
 =head1 DESCRIPTION
 
@@ -98,6 +99,10 @@ Debugging on (1) or off (0).
 =item logfile
 
 Which logfile to watch (default: C</var/log/mail.log>).
+
+=item rx_extra
+
+Ignore log lines that don't match a regular expression.  
 
 =back
 

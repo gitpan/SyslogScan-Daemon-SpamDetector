@@ -1,4 +1,4 @@
-# Copyright (C) 2006, David Muir Sharnoff
+# Copyright (C) 2006, 2007; David Muir Sharnoff
 
 package SyslogScan::Daemon::SpamDetector::Postfix;
 
@@ -63,7 +63,7 @@ sub get_logs
 		# Oct 24 14:19:27 ravel postfix/smtpd[968]: D4E5E1DC379: client=outbound1.internet-mail-service.net[216.240.47.192]
 		# Oct 24 14:19:27 ravel postfix/cleanup[94003]: D4E5E1DC379: message-id=<200610242119.k9OLJR7l031900@idiom.com>
 		$self->{logfile}	=> [
-			qr{^$Date (\S+) postfix\S*/smtpd\[\d+\]: ([A-Z0-9]{9,11}): (client)=\S*\[([\d\.]{8,20})\]},
+			qr{^$Date (\S+) postfix\S*/smtpd\[\d+\]: ([A-Z0-9]{9,11}): (client)=(\S*)\[([\d\.]{8,20})\]},
 			qr{^$Date (\S+) postfix\S*/cleanup\[\d+\]: ([A-Z0-9]{9,11}): (message-id)=<(.*?)>},
 		],
 	);
@@ -74,36 +74,39 @@ sub parse_logs
 	my ($self, $logfile, $rx) = @_;
 	my $debug = $self->{debug};
 	my $logline = $_;
-	my ($host, $msg, $what, $value) = ($1, $2, $3, $4);
+	my ($host, $msg, $what) = ($1, $2, $3);
 	
 	my $queueid = "$host/$msg";
 
 	if ($self->{Extra} && ! /$self->{Extra}/) {
-		# ignore
+		print "Ignoring match of $logline\n" if $debug;
 	} elsif ($what eq 'client') {
-		$self->{msgcache}{$queueid}{ip} = $value;
+		my ($hostname, $ip) = ($4, $5);
+		$self->{msgcache}{$queueid}{ip} = $ip;
 		if ($self->{msgcache}{$queueid}{msgid}) {
 			for my $msgid (@{$self->{msgcache}{$queueid}{msgid}}) {
 				$self->process_spam_match(
-					id	=> $msgid,
-					ip	=> $value,
-					status	=> 'idmap',
-					match	=> 'Postfix',
-					host	=> $host,
+					id		=> $msgid,
+					ip		=> $ip,
+					status		=> 'idmap',
+					match		=> 'Postfix',
+					host		=> $host,
+					relayname	=> $hostname,
 				);
 			}
 		}
 	} else {
+		my ($id) = ($4);
 		if ($self->{msgcache}{$queueid}{ip}) {
 			$self->process_spam_match(
-				id	=> $value,
+				id	=> $id,
 				ip	=> $self->{msgcache}{$queueid}{ip},
 				status	=> 'idmap',
 				match	=> 'Postfix',
 				host	=> $host,
 			);
 		} else {
-			push(@{$self->{msgcache}{$queueid}{msgid}}, $value);
+			push(@{$self->{msgcache}{$queueid}{msgid}}, $id);
 		}
 	}
 	return;
@@ -120,9 +123,10 @@ sub parse_logs
  plugin SyslogScan::Daemon::SpamDetector as sd_
 
  sd_plugin SyslogScan::Daemon::SpamDetector::Postfix
-	debug 	0
-	logfile /var/log/mail.info
-	msgcachesize 3000
+	debug 		0
+	logfile		/var/log/mail.info
+	msgcachesize	3000
+	rx_extra	'ingore_lines_without_this_string'
 
 =head1 DESCRIPTION
 
@@ -148,6 +152,13 @@ Which logfile to watch (default: C</var/log/mail.log>).
 To do this mapping, multiple log lines must be matched.  Partial
 matches will be stored in a cache.  This parameter sets the
 size of the cache (default: 3000).
+
+=item rx_extra
+
+Ignore log lines that don't match a regular expression.  Note: this module
+looks for two different kinds of Postfix log lines the regular expression
+needs to work for both sets.  One kind of log line always includes 
+C<: client=> and the other always includes C<: message-id=>.
 
 =back
 
