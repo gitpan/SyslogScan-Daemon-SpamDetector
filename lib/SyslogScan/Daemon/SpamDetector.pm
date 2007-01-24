@@ -11,7 +11,7 @@ use SyslogScan::Daemon::Plugin;
 use Tie::Cache::LRU;
 use Net::Netmask;
 
-our $VERSION = 0.43;
+our $VERSION = 0.51;
 
 our(@ISA) = qw(SyslogScan::Daemon::Plugin);
 
@@ -92,7 +92,20 @@ sub process_spam_match
 {
 	my ($self, %info) = @_;
 	my $status = $info{status};
-	my $ip = $info{ip} || $self->{idcache}{$info{id}};
+
+	if (my $c = $self->{idcache}{$info{id}}) {
+		for my $k (keys %$c) {
+			$info{$k} = $c->{$k} unless exists $info{$k};
+		}
+	}
+	my $ip = $info{ip};
+
+	my $filter = $self->{plugins}->invoke_until('filter', sub { defined($_[0]) }, %info);
+	if (defined $filter and ! $filter) {
+		print "FILTERED: $info{status} $info{match}\n" if $self->{debug} > 2;
+		return;
+	}
+
 	if (! $ip) {
 		print "SPAMDETECTOR: ignoring $status for <$info{id}> ... no ip mapping\n" if $self->{debug};
 	} elsif ($self->{myapi}->is_ourip($ip)) {
@@ -111,7 +124,7 @@ sub process_spam_match
 		}
 	} elsif ($status eq 'idmap') {
 		print "SPAMDETECTOR: IDMAP $info{match} $info{id} => $ip to $info{host}\n" if $self->{debug} >= 2;
-		$self->{idcache}{$info{id}} = $ip;
+		$self->{idcache}{$info{id}} = \%info;
 	} else {
 		die;
 	}
@@ -152,6 +165,7 @@ our @ISA = qw(SyslogScan::Daemon::Plugin);
 sub parse_logs {}
 sub spam_found {}
 sub ham_found {}
+sub filter { return undef };
 
 1;
 

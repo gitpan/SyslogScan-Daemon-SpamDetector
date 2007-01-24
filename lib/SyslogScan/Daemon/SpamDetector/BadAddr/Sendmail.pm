@@ -91,7 +91,7 @@ sub parse_logs
 				ip		=> $relayip,
 				from		=> $fromto,
 				relayname	=> $relayname,
-				match		=> 'sendmail',
+				match		=> 'BadAddr::Sendmail',
 				to		=> $to,
 				host		=> $host,
 			);

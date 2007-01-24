@@ -94,16 +94,9 @@ Watch the system log files for output from spamd.
 
 Please note that legitimate mail servers send mail that will be 
 caught by spamassassin.  The primary reason for this is forwarded
-mail.  One way to work around this problem is to use the "rx_extra"
-configuration parameter of L<SyslogScan::Daemon::SpamDetector::Postfix>
-or L<SyslogScan::Daemon::SpamDetector::Sendmail> to only record
-information from hosts with suspicious hostnames:
-
- sd_plugin SyslogScan::Daemon::SpamDetector::Postfix
-	rx_extra	'(?:\bdynamic\b|\badsl\d*\b|\bcable\b|\.dhcp\.|\.dyn\.|: message-id=)'
-
- sd_plugin SyslogScan::Daemon::SpamDetector::Sendmail
- 	rx_extra	'(?:\bdynamic\b|\badsl\d*\b|\bcable\b|\.dhcp\.|\.dyn\.)'
+mail.  One way to work around this problem is to use the 
+L<SyslogScan::Daemon::SpamDetector::Filter> module to only record
+information from hosts with suspicious hostnames.
 
 =head1 CONFIGURATION PARAMETERS
 

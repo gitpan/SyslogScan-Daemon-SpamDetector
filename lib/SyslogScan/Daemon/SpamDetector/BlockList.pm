@@ -42,6 +42,7 @@ my %defaults = (
 	rpmult		=> 4,
 	fastspammer	=> 10,
 	fastspammermult	=> 2,
+	cleanupfirst	=> 1,
 );
 
 sub config_prefix { 'sdblocklist_' }
@@ -57,6 +58,8 @@ sub new
 	$self->{plugins} = undef;
 	$self->{block_dbh} ||= undef;
 	$self->{track_dbh} ||= undef;
+	$self->{lastclean} = time
+		unless $self->{cleanupfirst};
 	lock_keys(%$self);
 	return $self;
 }
@@ -452,6 +455,10 @@ C<fastspammermult>.
 =item fastspammermult
 
 Block multiplier penealty for fast spammers.  (Default: 1.5)
+
+=item cleanupfirst
+
+Clean out old entries from the database tables at startup?  (Default: 1)
 
 =back
 

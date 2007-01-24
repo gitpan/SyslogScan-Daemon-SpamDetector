@@ -11,7 +11,7 @@ our $msgcachesize = 3_000;
 our(@ISA) = qw(SyslogScan::Daemon::SpamDetector::Plugin);
 
 my %defaults = (
-	rx_extra	=> '.',
+	rx_extra	=> '',
 	rx_month	=> '(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)',
 	rx_date		=> '',
 	logfile		=> '/var/log/mail.log',
@@ -74,17 +74,19 @@ sub parse_logs
 	my ($self, $logfile, $rx) = @_;
 	my $debug = $self->{debug};
 	my $logline = $_;
-	my ($host, $msg, $what) = ($1, $2, $3);
+	my ($host, $msg, $what, $more1, $more2) = ($1, $2, $3, $4, $5);
 	
 	my $queueid = "$host/$msg";
 
 	if ($self->{Extra} && ! /$self->{Extra}/) {
-		print "Ignoring match of $logline\n" if $debug;
+		print "Ignoring match of $logline\n" if $debug >= 2;
 	} elsif ($what eq 'client') {
-		my ($hostname, $ip) = ($4, $5);
-		$self->{msgcache}{$queueid}{ip} = $ip;
+		my ($hostname, $ip) = ($more1, $more2);
+		$self->{msgcache}{$queueid}{ip} = [ $ip, $hostname ];
+		print "Postfix: match client line, ip = $ip\n" if $debug;
 		if ($self->{msgcache}{$queueid}{msgid}) {
 			for my $msgid (@{$self->{msgcache}{$queueid}{msgid}}) {
+				print "Postfix IDMAP: $msgid -> $ip\n" if $debug;
 				$self->process_spam_match(
 					id		=> $msgid,
 					ip		=> $ip,
@@ -95,19 +97,25 @@ sub parse_logs
 				);
 			}
 		}
-	} else {
-		my ($id) = ($4);
+	} elsif ($what eq 'message-id') {
+		my ($id) = ($more1);
+		print "Postfix: match message id line, id = $id\n" if $debug >= 2;
 		if ($self->{msgcache}{$queueid}{ip}) {
+			my ($ip, $hostname) = @{$self->{msgcache}{$queueid}{ip}};
+			print "Postfix IDMAP: $id -> $ip\n" if $debug;
 			$self->process_spam_match(
-				id	=> $id,
-				ip	=> $self->{msgcache}{$queueid}{ip},
-				status	=> 'idmap',
-				match	=> 'Postfix',
-				host	=> $host,
+				id		=> $id,
+				ip		=> $ip,
+				status		=> 'idmap',
+				match		=> 'Postfix',
+				host		=> $host,
+				relayname	=> $hostname,
 			);
 		} else {
 			push(@{$self->{msgcache}{$queueid}{msgid}}, $id);
 		}
+	} else {
+		print "OOPS!, Postfix module broken\n";
 	}
 	return;
 }

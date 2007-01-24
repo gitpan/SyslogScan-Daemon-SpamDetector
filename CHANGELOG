@@ -1,3 +1,8 @@
+0.51	2007/01/23
+
+The regular epxression solution for SpamAssassin didn't work.
+Add new Filter module as a replacement solution.
+
 0.43	2007/01/21
 
 Document regular expression matching as a solution to the

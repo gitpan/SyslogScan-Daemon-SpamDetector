@@ -51,6 +51,7 @@ sub parse_logs
 	my $debug = $self->{debug};
 	my $logline = $_;
 	my ($host, $id) = ($1, $2);
+	print "SpamSink: $host $id\n" if $debug;
 	return () if $self->{Extra} && ! /$self->{Extra}/;
 	return (
 		status	=> 'spam',

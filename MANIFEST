@@ -9,6 +9,7 @@ lib/SyslogScan/Daemon/SpamDetector/Postfix.pm
 lib/SyslogScan/Daemon/SpamDetector/Sendmail.pm
 lib/SyslogScan/Daemon/SpamDetector/SpamAssassin.pm
 lib/SyslogScan/Daemon/SpamDetector/SpamSink.pm
+lib/SyslogScan/Daemon/SpamDetector/Filter.pm
 Makefile.PL
 MANIFEST
 CHANGELOG

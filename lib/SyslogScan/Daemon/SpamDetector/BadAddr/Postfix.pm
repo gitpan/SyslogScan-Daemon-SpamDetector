@@ -101,7 +101,7 @@ sub get_logs
 						%{$self->{msgcache}{$qid}},
 						to	=> $to,
 						host	=> $host,
-						match	=> 'postfix',
+						match	=> 'BadAddr::Postfix',
 					);
 				} else {
 					print "No IP mapping for postfix bad addr $to\n" if $self->{debug};
@@ -119,7 +119,7 @@ sub get_logs
 					host	=> $host,
 					ip	=> $ip,
 					to	=> $to,
-					match => 'postfix(NOQUEUE)',
+					match => 'BadAddr::Postfix(NOQUEUE)',
 				);
 			}),
 
