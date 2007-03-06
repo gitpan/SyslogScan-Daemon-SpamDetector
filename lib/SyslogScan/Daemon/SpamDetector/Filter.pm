@@ -13,10 +13,11 @@ my %defaults = (
 	status		=> 'spam',
 	match		=> '',
 	field		=> '',
-	accept		=> '',
-	deny		=> '',
+	accept		=> undef,
+	deny		=> undef,
 	debug		=> 0,
 	acceptfirst	=> 1,
+	logname		=> 'FILTER',
 );
 
 sub config_prefix { 'sdfilter_' }
@@ -33,8 +34,12 @@ sub preconfig
 {
 	my $self = shift;
 	$self->{rx_match} = qr/$self->{match}/;
-	$self->{rx_accept} = qr/$self->{accept}/;
-	$self->{rx_deny} = qr/$self->{deny}/;
+	$self->{rx_accept} = $self->{accept} 
+		? qr/$self->{accept}/
+		: undef;
+	$self->{rx_deny} = $self->{deny}
+		? qr/$self->{deny}/
+		: undef;
 	$self->{rx_status} = qr/$self->{status}/;
 }
 
@@ -42,39 +47,39 @@ sub filter
 {
 	my ($self, %info) = @_;
 	if ($self->{debug} >= 5) {
-		print "FILTER:\n";
+		print "$self->{logname}:\n";
 		for my $k (sort keys %info) {
 			printf "%15s= %s\n", $k, $info{$k};
 		}
 	}
 	unless ($info{status} =~ /$self->{rx_status}/) {
-		print "FILTER: Status $info{status} not $self->{status}\n" if $self->{debug} >= 4;
+		print "$self->{logname}: Status $info{status} not $self->{status}\n" if $self->{debug} >= 4;
 		return undef;
 	}
 	unless ($info{match} =~ /$self->{rx_match}/) {
-		print "FILTER: Match $info{match} not $self->{match}\n" if $self->{debug} >= 3;
+		print "$self->{logname}: Match $info{match} not $self->{match}\n" if $self->{debug} >= 3;
 		return undef;
 	}
 	unless (defined $info{$self->{field}}) {
-		print "FILTER: field '$self->{field}' undefined\n";
+		print "$self->{logname}: field '$self->{field}' undefined\n" if $self->{debug};
 		if ($self->{debug} && $self->{debug} < 5 && $info{ip}) {
-			print "FILTER:\n";
+			print "$self->{logname}:\n";
 			for my $k (sort keys %info) {
 				printf "%15s= %s\n", $k, $info{$k};
 			}
 		}
 		return undef;
 	}
-	if ($self->{acceptfirst} && $info{$self->{field}} =~ /$self->{rx_accept}/) {
-		print "FILTER: accept $self->{field} = $info{$self->{field}}\n" if $self->{debug} >= 2;
+	if ($self->{acceptfirst} && defined($self->{accept}) && $info{$self->{field}} =~ /$self->{rx_accept}/) {
+		print "$self->{logname}: accept $self->{field} = $info{$self->{field}}\n" if $self->{debug} >= 2;
 		return 1;
 	}
-	if ($info{$self->{field}} =~ /$self->{rx_deny}/) {
-		print "FILTER: deny $self->{field} = $info{$self->{field}}\n" if $self->{debug};
+	if (defined($self->{deny}) and $info{$self->{field}} =~ /$self->{rx_deny}/) {
+		print "$self->{logname}: deny $self->{field} = $info{$self->{field}}\n" if $self->{debug};
 		return 0;
 	}
-	if (! $self->{acceptfirst} and $info{$self->{field}} =~ /$self->{rx_accept}/) {
-		print "FILTER: accept $self->{field} = $info{$self->{field}}\n" if $self->{debug} >= 2;
+	if (! $self->{acceptfirst} and defined($self->{accept}) and $info{$self->{field}} =~ /$self->{rx_accept}/) {
+		print "$self->{logname}: accept $self->{field} = $info{$self->{field}}\n" if $self->{debug} >= 2;
 		return 1;
 	}
 	return undef;
@@ -120,10 +125,15 @@ The following configuration parameters are supported:
 
 Debugging on (1) or off (0).
 
+=item logname
+
+A string to prepend to debug and log output.  (Default: C<FILTER>)
+
 =item status
 
 What kind of report are we looking at?  Choices are: C<ham>, C<spam>, or C<idmap>.
-(Default: C<spam>).
+(Default: C<spam>).   When called from L<SyslogScan::Daemon::SpamDetector::BadAddr>,
+the status will be C<badaddr>.
 
 =item match
 

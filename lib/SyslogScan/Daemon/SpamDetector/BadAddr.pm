@@ -93,6 +93,17 @@ sub process_badaddr_match
 	if ($self->{myapi}->is_ourip($info{ip})) {
 		return;
 	}
+
+	my $filter = $self->{plugins}->invoke_until('filter', 
+		sub { defined($_[0]) }, 
+		%info, 
+		status => 'badaddr');
+
+	if (defined $filter and ! $filter) {
+		print "BA FILTERED: $info{status} $info{match}\n" if $self->{debug} > 2;
+		return;
+	}
+
 	if ((++$self->{ipcache}{$info{ip}} % $self->{every}) == 0) {
 		print "Reporting as spam $self->{ipcache}{$info{ip}} unknown users from $info{ip}\n" if $self->{debug};
 		$self->{api}->process_spam_match(

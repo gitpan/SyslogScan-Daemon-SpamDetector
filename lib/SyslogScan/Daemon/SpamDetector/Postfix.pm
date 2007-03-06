@@ -8,6 +8,7 @@ use SyslogScan::Daemon::SpamDetector::Plugin;
 use Plugins::SimpleConfig;
 use Tie::Cache::LRU;
 our $msgcachesize = 3_000;
+our $badnscachesize = 1_000;
 our(@ISA) = qw(SyslogScan::Daemon::SpamDetector::Plugin);
 
 my %defaults = (
@@ -28,6 +29,18 @@ my %defaults = (
 			$msgcachesize = $value;
 		}
 	},
+	badnscachesize	=> sub {
+		my ($pkgself, $key, $value) = @_;
+		if (ref($pkgself)) {
+			$pkgself->{badnscachesize} = $value;
+			if ($pkgself->{badnscache}) {
+				my $t = tied(%{$pkgself->{badnscache}});
+				$t->max_size($value);
+			}
+		} else {
+			$badnscachesize = $value;
+		}
+	},
 );
 
 sub config_prefix { 'sdpostfix_' }
@@ -40,6 +53,9 @@ sub new
 	$self->{msgcache} = {};
 	die if ref($self->{msgcachesize});
 	tie %{$self->{msgcache}}, 'Tie::Cache::LRU', $self->{msgcachesize} || $msgcachesize;
+	$self->{badnscache} = {};
+	die if ref($self->{badnscachesize});
+	tie %{$self->{badnscache}}, 'Tie::Cache::LRU', $self->{badnscachesize} || $badnscachesize;
 	return $self;
 }
 
@@ -65,6 +81,7 @@ sub get_logs
 		$self->{logfile}	=> [
 			qr{^$Date (\S+) postfix\S*/smtpd\[\d+\]: ([A-Z0-9]{9,11}): (client)=(\S*)\[([\d\.]{8,20})\]},
 			qr{^$Date (\S+) postfix\S*/cleanup\[\d+\]: ([A-Z0-9]{9,11}): (message-id)=<(.*?)>},
+			qr{^$Date (\S+) postfix\S*/smtpd\[\d+\](:) (warning): (\S+): hostname \S+ verification failed:},
 		],
 	);
 }
@@ -94,6 +111,7 @@ sub parse_logs
 					match		=> 'Postfix',
 					host		=> $host,
 					relayname	=> $hostname,
+					DNSbad		=> $self->{badnscache}{$ip} || 0,
 				);
 			}
 		}
@@ -110,14 +128,18 @@ sub parse_logs
 				match		=> 'Postfix',
 				host		=> $host,
 				relayname	=> $hostname,
+				DNSbad		=> $self->{badnscache}{$ip} || 0,
 			);
 		} else {
 			push(@{$self->{msgcache}{$queueid}{msgid}}, $id);
 		}
+	} elsif ($what eq 'warning') {
+		my $ip = $more1;
+		$self->{badnscache}{$ip} = 1;
 	} else {
 		print "OOPS!, Postfix module broken\n";
 	}
-	return;
+	return ();
 }
 
 1;

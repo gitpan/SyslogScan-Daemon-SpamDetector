@@ -559,6 +559,67 @@ you can dump the block list into a file:
  -e 'select ip, message from blocking where active = 1' \
  > file
 
+=head1 DNS BLOCKLIST
+
+One way to turn this blocklist into a DNS-based blocklist that
+can be used like other blocklists is to use L<rbldnsd(8)>.
+
+Set up a L<SyslogScan::Daemon::Periodic> job to rebuild the
+blocklist:
+
+ plugin SyslogScan::Daemon::Periodic 
+	debug	1
+	period	120
+	command	'/usr/local/bin/update_blocklist'
+
+The C<update_blocklist> script I use is:
+
+ #!/bin/sh -e
+
+ SUB=1171308796
+ SECONDS=`date +%s`
+ SEQN=`expr $SECONDS - $SUB`
+ DIR="/var/lib/rbldns"
+ ZONE="blocked"
+
+ sed "s/SERIAL/$SEQN/" < $DIR/$ZONE.head > $DIR/$ZONE.new
+
+ mysql -N -B --host=MYDBHOST --database=MYDB --user=MYDBUSER \
+   -e 'select	ip, concat(":1:",message) \
+       from	blocking where active = 1' \
+   | sed 's/:450 / /' \
+   >> $DIR/$ZONE.new
+
+ mv $DIR/$ZONE.new $DIR/$ZONE
+
+The C</var/lib/rbldns/blocked.head> file I use:
+
+ $SOA 1800 ns.idiom.com. muir.idiom.com. SERIAL 300 60 3600 300
+ $NS 1800 MYHOSTNAME
+ $TTL 120
+
+I start L<rbldnsd(8)> with:
+
+ /usr/sbin/rbldnsd -p /var/run/rbldnsd.pid \
+  -r/var/lib/rbldns -4 -bMYIPADDRESS/53 \
+  spammers.MYDOMAIN:ip4set:blocked
+
+Then, to use it with L<postfix(1)>, I set up a rbl_reply_maps so that
+I can give a temporary failure.
+
+ smtpd_client_restrictions =
+  permit_mynetworks,
+  reject_unauth_pipelining,
+  reject_rbl_client cbl.abuseat.org,
+  reject_rbl_client spammers.MYDOMAIN
+
+ rbl_reply_maps = hash:/etc/postfix/rbl_reply_maps
+
+My rbl_rply_maps file:
+
+ cbl.abuseat.org   $rbl_code Service unavailable; $rbl_class [$rbl_what] blocked using $rbl_domain${rbl_reason?; $rbl_reason}
+ spammers.MYDOMAIN 450 4.7.1 Service unavailable; $rbl_class [$rbl_what] $rbl_reason
+
 =head1 SEE ALSO
 
 L<SyslogScan::Daemon::SpamDetector>
