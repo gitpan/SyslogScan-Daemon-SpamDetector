@@ -587,7 +587,7 @@ The C<update_blocklist> script I use is:
  mysql -N -B --host=MYDBHOST --database=MYDB --user=MYDBUSER \
    -e 'select	ip, concat(":1:",message) \
        from	blocking where active = 1' \
-   | sed 's/:450 / /' \
+   | sed 's/:450 /:/' \
    >> $DIR/$ZONE.new
 
  mv $DIR/$ZONE.new $DIR/$ZONE
