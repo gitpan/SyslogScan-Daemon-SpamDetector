@@ -11,7 +11,7 @@ use SyslogScan::Daemon::Plugin;
 use Tie::Cache::LRU;
 use Net::Netmask;
 
-our $VERSION = 0.53;
+our $VERSION = 0.54;
 
 our(@ISA) = qw(SyslogScan::Daemon::Plugin);
 
@@ -353,10 +353,13 @@ L<Plugins::API>,
 L<Daemon::Generic>.
 
 Plugins for this module:
+L<SyslogScan::Daemon::SpamDetector::BlockList>.
 L<SyslogScan::Daemon::SpamDetector::Sendmail>,
 L<SyslogScan::Daemon::SpamDetector::Postfix>,
 L<SyslogScan::Daemon::SpamDetector::SpamSink>,
-L<SyslogScan::Daemon::SpamDetector::BlockList>.
+L<SyslogScan::Daemon::SpamDetector::SpamAssassin>.
+L<SyslogScan::Daemon::SpamDetector::Bogofilter>.
+L<SyslogScan::Daemon::SpamDetector::BadAddr>.
 
 =head1 THANK THE AUTHOR
 

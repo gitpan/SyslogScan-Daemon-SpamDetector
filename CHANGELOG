@@ -1,3 +1,7 @@
+0.54	2007/05/01
+
+Added a bogofilter output recognizer.
+
 0.53	2007/03/16
 
 Fix example program for generating rbldnsd blocklist.
@@ -26,5 +30,4 @@ bounces.
 0.41	2007/01/03
 
 Bugfix: delete old spam recevied rows in BlockList.pm
-
 

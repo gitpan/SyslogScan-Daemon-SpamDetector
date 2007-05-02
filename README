@@ -120,10 +120,13 @@ SEE ALSO
     The context for this: SyslogScan::Daemon, Plugins, Plugins::API,
     Daemon::Generic.
 
-    Plugins for this module: SyslogScan::Daemon::SpamDetector::Sendmail,
+    Plugins for this module: SyslogScan::Daemon::SpamDetector::BlockList.
+    SyslogScan::Daemon::SpamDetector::Sendmail,
     SyslogScan::Daemon::SpamDetector::Postfix,
     SyslogScan::Daemon::SpamDetector::SpamSink,
-    SyslogScan::Daemon::SpamDetector::BlockList.
+    SyslogScan::Daemon::SpamDetector::SpamAssassin.
+    SyslogScan::Daemon::SpamDetector::Bogofilter.
+    SyslogScan::Daemon::SpamDetector::BadAddr.
 
 THANK THE AUTHOR
     If you need high-speed internet services (T1, T3, OC3 etc), please send
