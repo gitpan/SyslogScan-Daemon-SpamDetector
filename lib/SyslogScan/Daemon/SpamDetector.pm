@@ -11,7 +11,7 @@ use SyslogScan::Daemon::Plugin;
 use Tie::Cache::LRU;
 use Net::Netmask;
 
-our $VERSION = 0.55;
+our $VERSION = 0.56;
 
 our(@ISA) = qw(SyslogScan::Daemon::Plugin);
 

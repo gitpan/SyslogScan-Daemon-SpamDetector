@@ -78,9 +78,10 @@ sub get_logs
 	return (
 		# Oct 24 14:19:27 ravel postfix/smtpd[968]: D4E5E1DC379: client=outbound1.internet-mail-service.net[216.240.47.192]
 		# Oct 24 14:19:27 ravel postfix/cleanup[94003]: D4E5E1DC379: message-id=<200610242119.k9OLJR7l031900@idiom.com>
+		# Mar 27 15:56:32 sh postfix/smtpd[6043]: AD87BC04EFAA6: client=27.232.68-86.rev.gaoland.net[86.68.232.27]
 		$self->{logfile}	=> [
-			qr{^$Date (\S+) postfix\S*/smtpd\[\d+\]: ([A-Z0-9]{9,11}): (client)=(\S*)\[([\d\.]{8,20})\]},
-			qr{^$Date (\S+) postfix\S*/cleanup\[\d+\]: ([A-Z0-9]{9,11}): (message-id)=<(.*?)>},
+			qr{^$Date (\S+) postfix\S*/smtpd\[\d+\]: ([A-Z0-9]{9,18}): (client)=(\S*)\[([\d\.]{8,20})\]},
+			qr{^$Date (\S+) postfix\S*/cleanup\[\d+\]: ([A-Z0-9]{9,18}): (message-id)=<(.*?)>},
 			qr{^$Date (\S+) postfix\S*/smtpd\[\d+\](:) (warning): (\S+): hostname \S+ verification failed:},
 		],
 	);

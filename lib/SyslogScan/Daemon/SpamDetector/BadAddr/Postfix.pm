@@ -78,7 +78,7 @@ sub get_logs
 
 		$self->{logfile}	=> [
 #			Oct 31 05:02:11 ravel postfix/smtpd[89130]: 14CF41DBEFB: client=customer.optindirectmail.74.sls-hosting.com[204.14.1.74]
-			$self->rx_invoke(qr{^$Date (\S+) postfix\S*/smtpd\[\d+\]: ([A-Z0-9]{9,11}): client=(\S*)\[([\d\.]{8,20})\]}, sub {
+			$self->rx_invoke(qr{^$Date (\S+) postfix\S*/smtpd\[\d+\]: ([A-Z0-9]{9,15}): client=(\S*)\[([\d\.]{8,20})\]}, sub {
 				my ($self, $logfile, $rx) = @_;
 				my ($host, $msg, $name, $ip) = ($1, $2, $3);
 				my $qid = "$host/$msg";
@@ -90,7 +90,7 @@ sub get_logs
 				return ();
 			}),
 #			Oct 31 05:02:11 ravel postfix/cleanup[78647]: 14CF41DBEFB: message-id=<5889984462.20061031070153@baraskaka.com>
-			$self->rx_invoke(qr{^$Date (\S+) postfix\S*/cleanup\[\d+\]: ([A-Z0-9]{9,11}): message-id=<(.*?)>}, sub {
+			$self->rx_invoke(qr{^$Date (\S+) postfix\S*/cleanup\[\d+\]: ([A-Z0-9]{9,15}): message-id=<(.*?)>}, sub {
 				my ($self, $logfile, $rx) = @_;
 				my ($host, $msg, $id) = ($1, $2, $3);
 				my $qid = "$host/$msg";
@@ -99,7 +99,7 @@ sub get_logs
 				return ();
 			}),
 #			Oct 31 05:02:11 ravel postfix/qmgr[84199]: 14CF41DBEFB: from=<shannon@baraskaka.com>, size=18688, nrcpt=1 (queue active)
-			$self->rx_invoke(qr{^$Date (\S+) postfix\S*/\S+\[\d+\]: ([A-Z0-9]{9,11}): from=<(\S+?)>,}, sub {
+			$self->rx_invoke(qr{^$Date (\S+) postfix\S*/\S+\[\d+\]: ([A-Z0-9]{9,15}): from=<(\S+?)>,}, sub {
 				my ($self, $logfile, $rx) = @_;
 				my ($host, $msg, $from) = ($1, $2, $3);
 				my $qid = "$host/$msg";
@@ -108,7 +108,7 @@ sub get_logs
 				return ();
 			}),
 #			Oct 31 05:02:11 ravel postfix/local[87055]: 14CF41DBEFB: to=<nosuchuser@n2.net>, orig_to=<lakas@n2.net>, relay=local, delay=1, status=bounced (unknown user: "nosuchuser")
-			$self->rx_invoke(qr{^$Date (\S+) postfix\S*/\S+\[\d+\]: ([A-Z0-9]{9,11}): to=<\S+?>, orig_to=<(\S+?)>, .*?status=bounced \(unknown user: ".*?"\)}, sub {
+			$self->rx_invoke(qr{^$Date (\S+) postfix\S*/\S+\[\d+\]: ([A-Z0-9]{9,15}): to=<\S+?>, orig_to=<(\S+?)>, .*?status=bounced \(unknown user: ".*?"\)}, sub {
 				my ($self, $logfile, $rx) = @_;
 				my ($host, $msg, $to) = ($1, $2, $3);
 				my $qid = "$host/$msg";

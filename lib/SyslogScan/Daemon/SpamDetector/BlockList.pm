@@ -626,9 +626,7 @@ L<SyslogScan::Daemon::SpamDetector>
 
 =head1 THANK THE AUTHOR
 
-If you need high-speed internet services (T1, T3, OC3 etc), please 
-send me your request-for-quote.  I have access to very good pricing:
-you'll save money and get a great service.
+Hire the author to do some perl programming on your behalf!
 
 =head1 LICENSE
 
